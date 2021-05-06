@@ -1,0 +1,78 @@
+---
+title: "LAB EXERCISE - 5 DECISION TREE"
+author: "KANDULA NAVEEN KUMAR - 17MIS1056"
+date: "03/03/2021"
+output: word_document
+---
+
+# importing the required libraries
+```{r}
+library(ggplot2) # Data visualization
+library(rpart.plot)
+library(rattle)
+library(tree)
+```
+
+
+```{r}
+data <- read.csv("C:\\Users\\Personal\\Downloads\\bank.csv",sep = ";")
+idx <- sample(1:nrow(data),8)
+sapply(data, class)
+head(data)
+glimpse(data)
+```
+
+
+# Data cleaning
+# Create numerical variables for feature matrix
+# Drop the NA
+```{r}
+data$age <- as.numeric(data$age)
+data$balance <- as.numeric(data$balance)
+data$day <- as.numeric(data$day)
+data$duration <- as.numeric(data$duration)
+data$campaign <- as.numeric(data$campaign)
+data$pdays <- as.numeric(data$pdays)
+data$previous <- as.numeric(data$previous)
+
+```
+
+# Create train/test set
+# Before we train your model, we need to :
+# Create a train and test set: 
+
+```{r}
+size <- nrow(data) * 0.8
+temo<-na.omit(data)
+data_bank <- sample(1:nrow(data), size = size)
+data_testing <- data[-data_bank,]
+data_training <- data[data_bank,]		
+summary(data_training)
+prop.table(table(data_training$y))
+```
+
+```{r}
+library(rpart)
+data_training.rpart <- rpart(y ~ ., data = data_training)
+library(rattle)
+library(RColorBrewer)
+fancyRpartPlot(data_training.rpart)
+predict_unseen <-predict(data_training.rpart, data_testing, type = 'class')
+```
+
+```{r}
+table_mat <- table(data_testing$y, predict_unseen)
+table_mat
+```
+
+```{r}
+accuracy_Test <- sum(diag(table_mat)) / sum(table_mat)
+print(paste('Accuracy for test', accuracy_Test))
+
+
+```
+# Conclusion
+# we start at the root node (depth 0 over 3, the top of the graph):
+# At the top, it is the overall probability of y. It shows the proportion of y that makes  the loan. 51 percent of passenger survived.
+# The model correctly predicted 774 loaned customers but classified 38 are rejected. By analogy, the model misclassified 68 observations as obtained loan while they turned out to be obtained the loans.
+# Score of 90 percent for the test set
