@@ -1,0 +1,39 @@
+---
+title: "LAB EXCERCISE 1"
+author: "KANDULA NAVEEN KUMAR - 17MIS1056"
+date: "09/02/2021"
+output: word_document
+---
+
+```{r}
+library(ggplot2)
+data("cars")
+x = cars$speed
+y = cars$dist
+
+```
+
+```{r}
+Sxy = sum((x - mean(x)) * (y - mean(y)))
+Sxx = sum((x - mean(x)) ^ 2)
+Syy = sum((y - mean(y)) ^ 2)
+c(Sxy, Sxx, Syy)
+
+```
+
+```{r}
+b1 = Sxy / Sxx
+b0 = mean(y) - b1 * mean(x)
+c(b0, b1)
+
+```
+#actually the formula is y=b0+b1x so from the above condition we can write that y=-17.579095+3.932409x.this one we calculated without the package. #now by using default r package we are calling the function
+
+```{r}
+cars.lm <- lm(dist ~ speed, data = cars)
+summary(cars.lm)
+
+
+```
+
+#AS you can see the intercept value(b0) is same as we calculated that is -17.5791 and the b1 value is also same that is 3.9324 #here the independent variable is speed and the dependent variable is distance because we can tell that if the speed is high then the distance covered is more and if the speed is less the distance covered is less.so distance is dependent variable.

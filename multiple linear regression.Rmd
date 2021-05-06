@@ -1,0 +1,39 @@
+---
+title: "MULTIPLE LINEAR REGRESSION - LAB EXCERCISE -2"
+author: "KANDULA NAVEEN KUMAR - 17MIS1056"
+date: "21/02/2021"
+output: word_document
+---
+
+```{r}
+rm(list=ls())
+setwd("C:\\Users\\Personal\\Downloads")
+data=read.csv("CreditWorthiness.csv")
+library(dplyr)
+data <- sample_n(data,100)
+
+```
+
+
+```{r}
+library("ggplot2")
+ggplot(data,aes(x=Cdur,y=age))+geom_point() #To plot - wt/gear
+cor.test(data$Cdur,data$age) # to find the correlation value
+
+```
+
+
+
+
+```{r}
+mlr = lm(Cdur~age+Camt, data)
+summary(mlr)
+
+```
+```{r}
+plot(mlr$resid) # Residual plot
+```
+```{r}
+plot(mlr$resid~data$Cdur[order(data$Cdur)], main="Cdur vs Residuals - Multiple Linear Regression", xlab="Cdur", ylab="Residuals")
+```
+
