@@ -1,0 +1,173 @@
+---
+title: "NAVIE BAYES"
+author: "ADITYA-17MIS1057"
+date: "15/04/2021"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+library(wordcloud)
+library(SnowballC)
+library(tm)
+library(e1071)
+library(lexicon)
+```
+
+```{r}
+baseDir = "D:\\8TH SEM\\20_newsgroups"
+newsGroupNames = list.files(baseDir, full.names = TRUE)
+
+readText = function(directory) {
+  textFileNames = list.files(directory, full.names = TRUE)
+  text          = vapply(textFileNames
+                         , function(x) paste(readLines(x), collapse = " ")
+                         , character(1)
+                         )
+
+  data.table::data.table(newsgroup  = basename(directory)
+                         , fileName = basename(textFileNames)
+                         , text     = text
+                         )
+}
+
+news20 = data.table::rbindlist(lapply(newsGroupNames, readText))
+data.table::setDF(news20)
+```
+
+```{r}
+typeof(news20)
+write.csv(news20,"D:\\8TH SEM\\20_newsgroups\\news.csv", row.names = TRUE)
+```
+
+```{r}
+getwd()
+df <- read.csv("D:\\8TH SEM\\20_newsgroups\\news.csv", stringsAsFactors = FALSE)
+set.seed(678)
+x = sample(1:nrow(df))
+df = df[x,]
+nrow(df)
+```
+
+```{r}
+df = df[,-1]
+df = df[1:10000,]
+nrow(df)
+```
+
+```{r}
+df$newsgroup <- factor(df$newsgroup)
+str(df)
+head(df)
+```
+
+# Creating a Corpus
+```{r}
+df_corpus <- Corpus(VectorSource(df$text))
+print(df_corpus)
+nrow(df)
+```
+
+#Cleaning dataset using tm
+```{r}
+corpus_clean <- tm_map(df_corpus, tolower)
+corpus_clean <- tm_map(corpus_clean, removeNumbers)
+corpus_clean <- tm_map(corpus_clean, removeWords, stopwords("en"))
+corpus_clean <- tm_map(corpus_clean, removePunctuation)
+corpus_clean <- tm_map(corpus_clean, stripWhitespace)
+```
+
+#Stemming and Lemmatization
+```{r}
+library(textstem)
+corpus_clean <- tm_map(corpus_clean, stemDocument)
+corpus_clean <- tm_map(corpus_clean, lemmatize_strings)
+inspect(corpus_clean[[1]])
+
+```
+
+```{r}
+cr_DTM_lem <- DocumentTermMatrix(corpus_clean)
+print(cr_DTM_lem)
+```
+
+# Train test split
+```{r}
+0.75*nrow(df)
+0.25*nrow(df)
+```
+
+```{r}
+df_dtm_train = cr_DTM_lem[1:7500,]
+df_dtm_test = cr_DTM_lem[7501:nrow(df),]
+```
+
+```{r}
+df_train_labels = df[1:7500,]$newsgroup
+df_test_labels = df[7501:nrow(df),]$newsgroup
+
+length(df_test_labels)
+```
+
+
+# Word Cloud visualization
+```{r}
+library(wordcloud)
+wordcloud(corpus_clean, max.words = 50, random.order = FALSE)
+```
+
+```{r}
+inspect(df_dtm_train)
+```
+
+
+```{r}
+inspect(df_dtm_train)
+```
+
+
+```{r}
+freq_words <- findFreqTerms(df_dtm_train, 5)
+str(freq_words)
+```
+
+
+```{r}
+df_dtm_freq_train <- df_dtm_train[ , freq_words]
+df_dtm_freq_test <- df_dtm_test[ , freq_words]
+```
+
+
+#Converting frequency of words to count
+
+
+```{r}
+convert_counts <- function(x) {
+  x <- ifelse(x > 0, "Yes", "No")
+}
+```
+
+
+```{r}
+df_train <- apply(df_dtm_freq_train, MARGIN = 2, convert_counts)
+df_test <- apply(df_dtm_freq_test, MARGIN = 2, convert_counts)
+length(df_train_labels)
+```
+
+
+#Model Building and evaluation
+```{r}
+df_classifier <- naiveBayes(df_train, df_train_labels)
+df_test_pred <- predict(df_classifier, df_test)
+```
+
+
+#Most of the documents are correctly classified using naive bayes...
+```{r}
+table(df_test_labels,df_test_pred)
+```
+
+
+
+

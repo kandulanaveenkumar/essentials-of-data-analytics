@@ -1,0 +1,93 @@
+---
+title: "LAB EXERCISE-10 HIERARCHIAL CLUSTERING"
+author: "KANDULA NAVEEN KUMAR - 17MIS1056"
+date: "01/04/2021"
+output: word_document
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+library(cluster) # clustering algorithms
+library(factoextra)
+```
+
+```{r}
+library(dendextend)
+library(dplyr)
+
+```
+
+```{r}
+dataset = read.csv("D:\\8TH SEM\\Iris.csv")
+dataset = dataset[1:5]
+dataset = dplyr::sample_n(dataset,100)
+dataset = na.omit(dataset)
+glimpse(dataset)
+```
+
+```{r}
+df <- scale(dataset)
+d <- dist(df, method = "euclidean")
+# Hierarchical clustering using Complete Linkage
+hc1 <- hclust(d, method = "complete" )
+# Plot the obtained dendrogram
+plot(hc1, cex = 0.6, hang = -1)
+```
+
+```{r}
+hc2 <- agnes(df, method = "complete")
+# Plot the obtained dendrogram
+pltree(hc2, cex = 0.6, hang = -1, main = "Dendrogram")
+```
+
+
+```{r}
+hc3 <- agnes(df, method = "ward")
+pltree(hc3, cex = 0.6, hang = -1, main = "Dendrogram of agnes")
+```
+
+```{r}
+hc4 <- diana(df)
+# plot dendrogram
+pltree(hc4, cex = 0.6, hang = -1, main = "Dendrogram of diana")
+```
+
+```{r}
+hc5 <- hclust(d, method = "ward.D2" )
+# Cut tree into 4 groups
+sub_grp <- cutree(hc5, k = 4)
+# Number of members in each cluster
+table(sub_grp)
+```
+
+```{r}
+dataset %>%
+mutate(cluster = sub_grp) %>%
+head
+```
+
+```{r}
+plot(hc5, cex = 0.6)
+rect.hclust(hc5, k = 4, border = 2:5)
+```
+
+```{r}
+fviz_cluster(list(data = df, cluster = sub_grp))
+```
+
+```{r}
+# Compute distance matrix
+res.dist <- dist(df, method = "euclidean")
+# Compute 2 hierarchical clusterings
+hc1 <- hclust(res.dist, method = "complete")
+hc2 <- hclust(res.dist, method = "ward.D2")
+# Create two dendrograms
+dend1 <- as.dendrogram (hc1)
+dend2 <- as.dendrogram (hc2)
+tanglegram(dend1, dend2)
+```
+
+
