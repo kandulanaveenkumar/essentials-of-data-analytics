@@ -1,0 +1,163 @@
+---
+title: "LAB EXERCISE - 11 NEURAL NETWORK"
+author: "KANDULA NAVEEN KUMAR - 17MIS1056"
+date: "18/05/2021"
+output: word_document
+---
+
+```{r}
+library(neuralnet)
+```
+
+```{r}
+library(NeuralNetTools)
+```
+
+```{r}
+library(MASS)
+library(tidyr)
+library(knitr)
+library(ggplot2)
+```
+
+
+```{r}
+data(Boston);
+colnames(Boston) 
+```
+
+
+```{r}
+dim(Boston)
+```
+
+
+```{r}
+str(Boston)
+```
+
+```{r}
+data <- Boston
+#check for missing values
+apply(data, 2, function(x) sum(is.na(x)))
+```
+
+
+```{r}
+index <- sample(1:nrow(data), round(0.75 * nrow(data)))
+train <- data[index, ]
+test <- data[-index, ]
+```
+
+
+```{r}
+maxs <- apply(data, 2, max) 
+mins <- apply(data, 2, min)
+
+scaled <- as.data.frame(scale(data, center = mins, scale = maxs - mins))
+
+train_ <- scaled[index,]
+test_ <- scaled[-index,]
+```
+
+
+```{r}
+n <- names(train_)
+f <- as.formula(paste("medv ~", paste(n[!n %in% "medv"], collapse = " + ")))
+nn <- neuralnet(f,data=train_,hidden=c(5,3),linear.output=T)
+```
+
+
+```{r}
+plotnet(nn,wts_only = TRUE)
+```
+
+
+```{r}
+neuralweights(nn)
+```
+
+
+```{r}
+pr.nn <- compute(nn,test_[,1:13])
+
+pr.nn_ <- pr.nn$net.result * (max(data$medv) - min(data$medv)) + min(data$medv)
+test.r <- (test_$medv) * (max(data$medv) - min(data$medv)) + min(data$medv)
+
+MSE.nn <- sum((test.r - pr.nn_)^2)/nrow(test_)
+```
+
+
+```{r}
+print(MSE.nn)
+```
+
+
+```{r}
+plot(test$medv,pr.nn_,col='red',main='Real vs predicted NN',pch=18,cex=0.7)
+abline(0,1,lwd=2)
+legend('bottomright',legend='NN',pch=18,col='red', bty='n')
+```
+
+#we need to treat the null values in the titanic dataset and also the check the categorical values of the titanic dataset with the oneencoding , dropping columns like the name and the passenger id as they have no use to the NN.
+
+```{r}
+library(dplyr)
+```
+
+
+```{r}
+library(ggplot2)
+library(e1071)
+library(caret)
+```
+
+
+```{r}
+library(randomForest)
+```
+
+```{r}
+library(nnet)
+train<- read.csv("D:\\titanic_train.csv")
+
+#treating the missing values with median
+train[is.na(train$Age),6]<-28
+
+#Converting categorical variables in factors
+train$Survived<-as.factor(train$survived)
+train$Pclass<-as.factor(train$pclass)
+```
+
+```{r}
+library(caTools)
+set.seed(123)
+index<-sample.split(train$Survived,SplitRatio =  0.8)
+train1<-subset(train,index==TRUE)
+test1<-subset(train,index==FALSE)
+```
+
+```{r}
+set.seed(5)
+model.nnet<-nnet(Survived~Pclass
+                 +sex
+                 +age
+                 +sibsp
+                 +parch
+                 +fare
+                 ,data = train1, size =3, maxit = 10000, decay = 5e-4)
+```
+
+```{r}
+library(NeuralNetTools)
+y_nnet<-predict(model.nnet,newdata = test1,type = 'class')
+confusionMatrix(as.factor(y_nnet),test1$Survived)
+```
+
+```{r}
+plotnet(model.nnet)
+```
+
+
+
+
